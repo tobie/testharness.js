@@ -215,6 +215,22 @@ policies and contribution forms [3].
  * These are given the same arguments as the corresponding internal callbacks
  * described above.
  *
+ * == External API through cross-document messaging ==
+ *
+ * Where supported, the test harness will also send messages using
+ * cross-document messaging to each ancestor browsing context. Since it
+ * uses the wildcard keyword (*), cross-origin communication is enabled and
+ * script on different origins can collect the results.
+ *
+ * This API follows similar conventions as those described above only slightly
+ * modified to accommodate message event API. Each message is sent by the harness
+ * is passed a single vanilla object, available as the `data` property of the
+ * event object. These objects are structures as follows:
+ *
+ * start - { type: "start" }
+ * result - { type: "result", test: Test }
+ * complete - { type: "complete", tests: [Test, ...], status: TestsStatus }
+ *
  * == List of assertions ==
  *
  * assert_true(actual, description)
@@ -895,6 +911,24 @@ policies and contribution forms [3].
         NOTRUN:3
     };
 
+    Test.prototype.structured_clone = function()
+    {
+        if(!this._structured_clone)
+        {
+            var msg = this.message;
+            msg = msg ? String(msg) : msg;
+            this._structured_clone = {
+                PASS:0,
+                FAIL:1,
+                TIMEOUT:2,
+                NOTRUN:3,
+                name:String(this.name),
+                status:this.status,
+                message:msg
+            };
+        }
+        return this._structured_clone;
+    };
 
     Test.prototype.step = function(func, this_obj)
     {
@@ -1006,6 +1040,23 @@ policies and contribution forms [3].
         OK:0,
         ERROR:1,
         TIMEOUT:2
+    };
+
+    TestsStatus.prototype.structured_clone = function()
+    {
+        if(!this._structured_clone)
+        {
+            var msg = this.message;
+            msg = msg ? String(msg) : msg;
+            this._structured_clone = {
+                OK:0,
+                ERROR:1,
+                TIMEOUT:2,
+                status:this.status,
+                message:msg
+            };
+        }
+        return this._structured_clone;
     };
 
     function Tests()
@@ -1166,6 +1217,7 @@ policies and contribution forms [3].
                             }
                         }
                     }
+                    this_obj.post_message(w, "start", { properties: this_obj.properties });
                 });
     };
 
@@ -1205,6 +1257,7 @@ policies and contribution forms [3].
                             }
                         }
                     }
+                    this_obj.post_message(w, "result", { test: test.structured_clone() });
                 });
         this.processing_callbacks = false;
         if (this_obj.all_done())
@@ -1253,7 +1306,19 @@ policies and contribution forms [3].
                             }
                         }
                     }
+                    this_obj.post_message(w, "complete", {
+                        tests: map(this_obj.tests, function(t) { return t.structured_clone(); }),
+                        status: this_obj.status.structured_clone()
+                    });
                 });
+    };
+
+    Tests.prototype.post_message = function(w, type, data)
+    {
+        if (typeof w.postMessage == "function") {
+            data.type = type;
+            w.postMessage(data, '*');
+        }
     };
 
     var tests = new Tests();
