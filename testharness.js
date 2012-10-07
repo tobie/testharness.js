@@ -1200,7 +1200,7 @@ policies and contribution forms [3].
                  {
                      callback(this_obj.properties);
                  });
-        forEach_window(
+        forEach_windows(
                 function(w, is_same_origin)
                 {
                     if(is_same_origin && w.start_callback)
@@ -1241,7 +1241,7 @@ policies and contribution forms [3].
                     callback(test, this_obj);
                 });
 
-        forEach_window(
+        forEach_windows(
                 function(w, is_same_origin)
                 {
                     if(is_same_origin && w.result_callback)
@@ -1294,7 +1294,7 @@ policies and contribution forms [3].
                      callback(this_obj.tests, this_obj.status);
                  });
 
-        forEach_window(
+        forEach_windows(
                 function(w, is_same_origin)
                 {
                     if(is_same_origin && w.completion_callback)
@@ -1873,12 +1873,12 @@ policies and contribution forms [3].
         target[components[components.length - 1]] = object;
     }
 
-    function forEach_window(callback) {
+    function forEach_windows(callback) {
         // Iterate of the the windows [self ... top]. The callback is passed
         // two objects, the first one is the windows object itself, the second one
         // is a boolean indicating whether or not its on the same origin as the
         // current window.
-        var cache = forEach_window.result_cache;
+        var cache = forEach_windows.result_cache;
         if (!cache) {
             cache = [[self, true]];
             var w = self;
@@ -1916,7 +1916,7 @@ policies and contribution forms [3].
                 cache.push([w, is_same_origin]);
                 i++;
             }
-            forEach_window.result_cache = cache;
+            forEach_windows.result_cache = cache;
         }
 
         forEach(cache,
