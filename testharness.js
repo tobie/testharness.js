@@ -1315,7 +1315,8 @@ policies and contribution forms [3].
 
     Tests.prototype.post_message = function(w, type, data)
     {
-        if (typeof w.postMessage == "function") {
+        if (typeof w.postMessage == "function")
+        {
             data.type = type;
             w.postMessage(data, '*');
         }
