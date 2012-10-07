@@ -1278,6 +1278,11 @@ policies and contribution forms [3].
     {
         clearTimeout(this.timeout_id);
         var this_obj = this;
+        var tests = map(this_obj.tests,
+                        function(test)
+                        {
+                            return test.structured_clone();
+                        });
         if (this.status.status === null)
         {
             this.status.status = this.status.OK;
@@ -1307,7 +1312,7 @@ policies and contribution forms [3].
                         }
                     }
                     this_obj.post_message(w, "complete", {
-                        tests: map(this_obj.tests, function(t) { return t.structured_clone(); }),
+                        tests: tests,
                         status: this_obj.status.structured_clone()
                     });
                 });
