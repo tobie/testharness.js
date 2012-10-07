@@ -1200,10 +1200,10 @@ policies and contribution forms [3].
                  {
                      callback(this_obj.properties);
                  });
-        forEach(ancestor_windows(),
-                function(w)
+        forEach_window(
+                function(w, is_same_origin)
                 {
-                    if(w.start_callback)
+                    if(is_same_origin && w.start_callback)
                     {
                         try
                         {
@@ -1241,10 +1241,10 @@ policies and contribution forms [3].
                     callback(test, this_obj);
                 });
 
-        forEach(ancestor_windows(),
-                function(w)
+        forEach_window(
+                function(w, is_same_origin)
                 {
-                    if(w.result_callback)
+                    if(is_same_origin && w.result_callback)
                     {
                         try
                         {
@@ -1289,10 +1289,10 @@ policies and contribution forms [3].
                      callback(this_obj.tests, this_obj.status);
                  });
 
-        forEach(ancestor_windows(),
-                function(w)
+        forEach_window(
+                function(w, is_same_origin)
                 {
-                    if(w.completion_callback)
+                    if(is_same_origin && w.completion_callback)
                     {
                         try
                         {
@@ -1867,22 +1867,58 @@ policies and contribution forms [3].
         target[components[components.length - 1]] = object;
     }
 
- function ancestor_windows() {
-     //Get the windows [self ... top] as an array
-     if ("result_cache" in ancestor_windows)
-     {
-         return ancestor_windows.result_cache;
-     }
-     var rv = [self];
-     var w = self;
-     while (w != w.parent)
-     {
-         w = w.parent;
-         rv.push(w);
-     }
-     ancestor_windows.result_cache = rv;
-     return rv;
- }
+    function forEach_window(callback) {
+        // Iterate of the the windows [self ... top]. The callback is passed
+        // two objects, the first one is the windows object itself, the second one
+        // is a boolean indicating whether or not its on the same origin as the
+        // current window.
+        var cache = forEach_window.result_cache;
+        if (!cache) {
+            cache = [[self, true]];
+            var w = self;
+            var i = 0;
+            var is_same_origin;
+            var origins = location.ancestorOrigins;
+            while (w != w.parent)
+            {
+                w = w.parent;
+                // In WebKit, calls to parent windows' properties that aren't on the same
+                // origin cause an error message to be displayed in the error console but
+                // don't throw an exception. This is a deviation from the current HTML5
+                // spec. See: https://bugs.webkit.org/show_bug.cgi?id=43504
+                // The problem with WebKit's behavior is that it pollutes the error console
+                // with error messages that can't be caught.
+                //
+                // This issue can be mitigated by relying on the (for now) proprietary
+                // `location.ancestorOrigins` property which returns an ordered list of
+                // the origins of enclosing windows. See:
+                // http://trac.webkit.org/changeset/113945.
+                if(origins) {
+                    is_same_origin = (location.origin == origins[i]);
+                }
+                // For browsers that don't support this behaviour, we just do a try..catch
+                // on a ramdom prop and see if it throws.
+                else
+                {
+                    is_same_origin = true
+                    try {
+                        'random_prop' in w;
+                    } catch(e) {
+                        is_same_origin = false;
+                    }
+                }
+                cache.push([w, is_same_origin]);
+                i++;
+            }
+            forEach_window.result_cache = cache;
+        }
+
+        forEach(cache,
+                function(a)
+                {
+                    callback.apply(null, a);
+                });
+    }
 
 })();
 // vim: set expandtab shiftwidth=4 tabstop=4:
