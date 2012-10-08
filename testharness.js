@@ -1215,7 +1215,13 @@ policies and contribution forms [3].
                             }
                         }
                     }
-                    this_obj.post_message(w, "start", { properties: this_obj.properties });
+                    if (this_obj.supports_post_message(w))
+                    {
+                        w.postMessage({
+                            type: "start",
+                            properties: this_obj.properties
+                        }, "*");
+                    }
                 });
     };
 
@@ -1255,7 +1261,13 @@ policies and contribution forms [3].
                             }
                         }
                     }
-                    this_obj.post_message(w, "result", { test: test.structured_clone() });
+                    if (this_obj.supports_post_message(w))
+                    {
+                        w.postMessage({
+                            type: "result",
+                            test: test.structured_clone()
+                        }, "*");
+                    }
                 });
         this.processing_callbacks = false;
         if (this_obj.all_done())
@@ -1309,20 +1321,55 @@ policies and contribution forms [3].
                             }
                         }
                     }
-                    this_obj.post_message(w, "complete", {
-                        tests: tests,
-                        status: this_obj.status.structured_clone()
-                    });
+                    if (this_obj.supports_post_message(w))
+                    {
+                        w.postMessage({
+                            type: "complete",
+                            tests: tests,
+                            status: this_obj.status.structured_clone()
+                        }, "*");
+                    }
                 });
     };
 
-    Tests.prototype.post_message = function(w, type, data)
+    Tests.prototype.supports_post_message = function(w)
     {
-        if (typeof w.postMessage == "function")
+        var supports;
+        var type;
+        // Given IE  implements postMessage across nested iframes but not across
+        // windows or tabs, you can't infer cross-origin communication from the presence
+        // of postMessage on the current window object only.
+        //
+        // Touching the postMessage prop on a window can throw if the window is
+        // not from the same origin AND post message is not supported in that
+        // browser. So just doing an existence test here won't do, you also need
+        // to wrap it in a try..cacth block.
+        try
         {
-            data.type = type;
-            w.postMessage(data, '*');
+            type = typeof w.postMessage;
+            if (type === "function")
+            {
+                supports = true;
+            }
+            // IE8 supports postMessage, but implements it as a host object which
+            // returns "object" as its `typeof`.
+            else if (type === "object")
+            {
+                supports = true;
+            }
+            // This is the case where postMessage isn't supported AND accessing a
+            // window property across origins does NOT throw (e.g. old Safari browser).
+            else
+            {
+                supports = false;
+            }
         }
+        catch(e) {
+            // This is the case where postMessage isn't supported AND accessing a
+            // window property across origins throws (e.g. old Firefox browser).
+            supports = false;
+        }
+        return supports;
     };
 
     var tests = new Tests();
