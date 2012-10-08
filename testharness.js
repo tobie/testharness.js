@@ -904,12 +904,14 @@ policies and contribution forms [3].
         tests.push(this);
     }
 
-    Test.prototype = {
+    Test.statuses = {
         PASS:0,
         FAIL:1,
         TIMEOUT:2,
         NOTRUN:3
     };
+
+    Test.prototype = merge({}, Test.statuses);
 
     Test.prototype.structured_clone = function()
     {
@@ -917,15 +919,11 @@ policies and contribution forms [3].
         {
             var msg = this.message;
             msg = msg ? String(msg) : msg;
-            this._structured_clone = {
-                PASS:0,
-                FAIL:1,
-                TIMEOUT:2,
-                NOTRUN:3,
+            this._structured_clone = merge({
                 name:String(this.name),
                 status:this.status,
                 message:msg
-            };
+            }, Test.statuses);
         }
         return this._structured_clone;
     };
@@ -1036,11 +1034,14 @@ policies and contribution forms [3].
         this.status = null;
         this.message = null;
     }
-    TestsStatus.prototype = {
+
+    TestsStatus.statuses = {
         OK:0,
         ERROR:1,
         TIMEOUT:2
     };
+
+    TestsStatus.prototype = merge({}, TestsStatus.statuses);
 
     TestsStatus.prototype.structured_clone = function()
     {
@@ -1048,13 +1049,10 @@ policies and contribution forms [3].
         {
             var msg = this.message;
             msg = msg ? String(msg) : msg;
-            this._structured_clone = {
-                OK:0,
-                ERROR:1,
-                TIMEOUT:2,
+            this._structured_clone = merge({
                 status:this.status,
                 message:msg
-            };
+            }, TestsStatus.statuses);
         }
         return this._structured_clone;
     };
