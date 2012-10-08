@@ -1215,7 +1215,7 @@ policies and contribution forms [3].
                             }
                         }
                     }
-                    if (this_obj.supports_post_message(w))
+                    if (supports_post_message(w))
                     {
                         w.postMessage({
                             type: "start",
@@ -1261,7 +1261,7 @@ policies and contribution forms [3].
                             }
                         }
                     }
-                    if (this_obj.supports_post_message(w))
+                    if (supports_post_message(w))
                     {
                         w.postMessage({
                             type: "result",
@@ -1321,7 +1321,7 @@ policies and contribution forms [3].
                             }
                         }
                     }
-                    if (this_obj.supports_post_message(w))
+                    if (supports_post_message(w))
                     {
                         w.postMessage({
                             type: "complete",
@@ -1330,46 +1330,6 @@ policies and contribution forms [3].
                         }, "*");
                     }
                 });
-    };
-
-    Tests.prototype.supports_post_message = function(w)
-    {
-        var supports;
-        var type;
-        // Given IE  implements postMessage across nested iframes but not across
-        // windows or tabs, you can't infer cross-origin communication from the presence
-        // of postMessage on the current window object only.
-        //
-        // Touching the postMessage prop on a window can throw if the window is
-        // not from the same origin AND post message is not supported in that
-        // browser. So just doing an existence test here won't do, you also need
-        // to wrap it in a try..cacth block.
-        try
-        {
-            type = typeof w.postMessage;
-            if (type === "function")
-            {
-                supports = true;
-            }
-            // IE8 supports postMessage, but implements it as a host object which
-            // returns "object" as its `typeof`.
-            else if (type === "object")
-            {
-                supports = true;
-            }
-            // This is the case where postMessage isn't supported AND accessing a
-            // window property across origins does NOT throw (e.g. old Safari browser).
-            else
-            {
-                supports = false;
-            }
-        }
-        catch(e) {
-            // This is the case where postMessage isn't supported AND accessing a
-            // window property across origins throws (e.g. old Firefox browser).
-            supports = false;
-        }
-        return supports;
     };
 
     var tests = new Tests();
@@ -1979,6 +1939,46 @@ policies and contribution forms [3].
         } catch(e) {
             return false;
         }
+    }
+
+    function supports_post_message(w)
+    {
+        var supports;
+        var type;
+        // Given IE  implements postMessage across nested iframes but not across
+        // windows or tabs, you can't infer cross-origin communication from the presence
+        // of postMessage on the current window object only.
+        //
+        // Touching the postMessage prop on a window can throw if the window is
+        // not from the same origin AND post message is not supported in that
+        // browser. So just doing an existence test here won't do, you also need
+        // to wrap it in a try..cacth block.
+        try
+        {
+            type = typeof w.postMessage;
+            if (type === "function")
+            {
+                supports = true;
+            }
+            // IE8 supports postMessage, but implements it as a host object which
+            // returns "object" as its `typeof`.
+            else if (type === "object")
+            {
+                supports = true;
+            }
+            // This is the case where postMessage isn't supported AND accessing a
+            // window property across origins does NOT throw (e.g. old Safari browser).
+            else
+            {
+                supports = false;
+            }
+        }
+        catch(e) {
+            // This is the case where postMessage isn't supported AND accessing a
+            // window property across origins throws (e.g. old Firefox browser).
+            supports = false;
+        }
+        return supports;
     }
 })();
 // vim: set expandtab shiftwidth=4 tabstop=4:
