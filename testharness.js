@@ -1881,7 +1881,7 @@ policies and contribution forms [3].
             cache = [[self, true]];
             var w = self;
             var i = 0;
-            var is_same_origin;
+            var so;
             var origins = location.ancestorOrigins;
             while (w != w.parent)
             {
@@ -1898,21 +1898,22 @@ policies and contribution forms [3].
                 // the origins of enclosing windows. See:
                 // http://trac.webkit.org/changeset/113945.
                 if(origins) {
-                    is_same_origin = (location.origin == origins[i]);
+                    so = (location.origin == origins[i]);
                 }
-                // For browsers that don't support this behaviour, we just do a try..catch
-                // on a ramdom prop and see if it throws.
                 else
                 {
-                    is_same_origin = true
-                    try {
-                        'random_prop' in w;
-                    } catch(e) {
-                        is_same_origin = false;
-                    }
+                    so = is_same_origin(w);
                 }
-                cache.push([w, is_same_origin]);
+                cache.push([w, so]);
                 i++;
+            }
+            w = window.opener
+            if(w)
+            {
+                // window.opener isn't included in the `location.ancestorOrigins` prop.
+                // We'll just have to deal with a simple check and an error msg on WebKit
+                // browsers in this case.
+                cache.push([w, is_same_origin(w)]);
             }
             forEach_windows.result_cache = cache;
         }
@@ -1924,5 +1925,13 @@ policies and contribution forms [3].
                 });
     }
 
+    function is_same_origin(w) {
+        try {
+            'random_prop' in w;
+            return true;
+        } catch(e) {
+            return false;
+        }
+    }
 })();
 // vim: set expandtab shiftwidth=4 tabstop=4:
