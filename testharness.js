@@ -1872,7 +1872,7 @@ policies and contribution forms [3].
     }
 
     function forEach_windows(callback) {
-        // Iterate of the the windows [self ... top]. The callback is passed
+        // Iterate of the the windows [self ... top, opener]. The callback is passed
         // two objects, the first one is the windows object itself, the second one
         // is a boolean indicating whether or not its on the same origin as the
         // current window.
