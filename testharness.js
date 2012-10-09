@@ -1914,7 +1914,7 @@ policies and contribution forms [3].
                 cache.push([w, so]);
                 i++;
             }
-            w = window.opener
+            w = window.opener;
             if(w)
             {
                 // window.opener isn't included in the `location.ancestorOrigins` prop.
