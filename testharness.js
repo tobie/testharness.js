@@ -206,7 +206,7 @@ policies and contribution forms [3].
  *
  * In order to collect the results of multiple pages containing tests, the test
  * harness will, when loaded in a nested browsing context, attempt to call
- * certain functions in each ancestor browsing context:
+ * certain functions in each ancestor and opener browsing context:
  *
  * start - start_callback
  * result - result_callback
@@ -218,8 +218,8 @@ policies and contribution forms [3].
  * == External API through cross-document messaging ==
  *
  * Where supported, the test harness will also send messages using
- * cross-document messaging to each ancestor browsing context. Since it
- * uses the wildcard keyword (*), cross-origin communication is enabled and
+ * cross-document messaging to each ancestor and opener browsing context. Since
+ * it uses the wildcard keyword (*), cross-origin communication is enabled and
  * script on different origins can collect the results.
  *
  * This API follows similar conventions as those described above only slightly
